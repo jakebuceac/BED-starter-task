@@ -1,7 +1,12 @@
 <?php
 
+use App\Http\Controllers\Authentication;
+use App\Http\Controllers\TestController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,7 +18,16 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+Route::POST('/register', [
+    Authentication::class, 'register'
+]);
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::POST('/login', [
+    Authentication::class, 'login'
+]);
+
+Route::middleware(['auth:sanctum'])->group(function (){
+    Route::get('/test', [
+        TestController::class, 'test'
+    ]);
 });

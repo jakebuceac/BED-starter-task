@@ -2,7 +2,11 @@
 
 namespace App\Exceptions;
 
+use HttpException;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\JsonResponse;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -37,5 +41,28 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    public function render($request, Throwable $e)
+    {
+        if($e instanceof HttpException) {
+
+            return new JsonResponse(['error' => $e->getMessage()], $e->getStatusCode());
+
+        } else if($e instanceof AuthenticationException) {
+
+            return new JsonResponse((object) [], 401);
+
+        } else if($e instanceof AuthorizationException) {
+
+            return new JsonResponse((object) [], 401);
+
+        }
+        return new JsonResponse([
+            'data' => [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]
+        ], 500);
     }
 }
