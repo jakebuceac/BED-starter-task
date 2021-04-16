@@ -41,6 +41,6 @@ class DeleteExpiredToken extends Command
     public function handle()
     {
 
-        return PersonalAccessToken::where('created_at', '<=', Carbon::now()->subHour())->delete;
+        return PersonalAccessToken::where('created_at', '<=', Carbon::now()->subMinute())->delete();
     }
 }
