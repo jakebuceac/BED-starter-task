@@ -4,8 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Posts extends Model
+class Post extends Model
 {
     use HasFactory;
 
@@ -16,6 +18,22 @@ class Posts extends Model
      */
     protected $fillable = [
         'title',
-        'content'
+        'body'
     ];
+
+    /**
+     * Get the user that owns the post
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The tags that belong to the post
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'posts_tags_link');
+    }
 }

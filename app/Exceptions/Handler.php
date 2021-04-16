@@ -2,11 +2,15 @@
 
 namespace App\Exceptions;
 
+use ArgumentCountError;
 use HttpException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -43,6 +47,13 @@ class Handler extends ExceptionHandler
         });
     }
 
+    /**
+     * Render the exception handling callbacks for the application.
+     *
+     * @param $request
+     * @param Throwable $e
+     * @return JsonResponse
+     */
     public function render($request, Throwable $e)
     {
         if($e instanceof HttpException) {
@@ -57,7 +68,19 @@ class Handler extends ExceptionHandler
 
             return new JsonResponse((object) [], 401);
 
+        } else if($e instanceof ValidationException) {
+
+            return new JsonResponse($e->errors(), 405);
+
+        } else if ($e instanceof QueryException) {
+
+            return new JsonResponse(['title' => $e->errorInfo], 405);
+
+        } else if ($e instanceof ModelNotFoundException) {
+
+            return new JsonResponse(['id' => ['The entity could not be found.']], 404);
         }
+
         return new JsonResponse([
             'data' => [
                 'message' => $e->getMessage(),
