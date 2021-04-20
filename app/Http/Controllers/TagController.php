@@ -6,7 +6,6 @@ use App\Http\Requests\TagStoreRequest;
 use App\Http\Resources\TagResource;
 use App\Models\Tag;
 use App\Rules\TagNotReferenced;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
