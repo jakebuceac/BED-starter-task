@@ -28,11 +28,6 @@ class PostTest extends TestCase
 
         $response->assertStatus(201);
 
-        $response->assertJsonFragment([
-            'title' => 'Laravel',
-            'body' => 'My first laravel project'
-        ]);
-
         $this->assertDatabaseHas('posts', [
             'title' => 'Laravel',
             'body' => 'My first laravel project'

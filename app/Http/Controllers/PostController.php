@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AttachTagToPostRequest;
 use App\Http\Requests\PostStoreRequest;
+use App\Http\Resources\PostMarkdownToHtml;
 use App\Models\Post;
 use App\Models\Tag;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -20,11 +21,11 @@ class PostController extends Controller
      * Creates a post for authorised users
      *
      * @param PostStoreRequest $request
-     * @return Post
+     * @return PostMarkdownToHtml
      * @throws ValidationException
      * @throws Throwable
      */
-    public function store(PostStoreRequest $request): Post
+    public function store(PostStoreRequest $request): PostMarkdownToHtml
     {
         // creates new post object
         $newPost = new Post();
@@ -49,7 +50,7 @@ class PostController extends Controller
 
 
         // returns the post that was created
-        return $newPost;
+        return PostMarkdownToHtml::make($newPost);
     }
 
     /**
@@ -69,12 +70,12 @@ class PostController extends Controller
      *
      * @param Request $request
      * @param Post $post
-     * @return Post
+     * @return PostMarkdownToHtml
      */
-    public function show(Request $request, Post $post): Post
+    public function show(Request $request, Post $post): PostMarkdownToHtml
     {
         // finds and returns the post with the matching id
-        return $post;
+        return PostMarkdownToHtml::make($post);
     }
 
     /**
