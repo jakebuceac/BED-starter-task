@@ -8,9 +8,9 @@ use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Models\Tag;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -57,12 +57,12 @@ class PostController extends Controller
      * Displays all the posts created from all users
      *
      * @param Request $request
-     * @return Post[]|Collection
+     * @return AnonymousResourceCollection
      */
-    public function index(Request $request)
+    public function index(Request $request): AnonymousResourceCollection
     {
         // displays all the posts that have been created so far
-        return Post::all();
+        return PostResource::collection(Post::all());
     }
 
     /**

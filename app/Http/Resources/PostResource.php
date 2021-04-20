@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Mail\Markdown;
 
 class PostResource extends JsonResource
 {
@@ -21,8 +20,10 @@ class PostResource extends JsonResource
             'id' => $this->id,
             'attributes' => [
                 'title' => $this->title,
-                'body' => Markdown::parse($this->body)->toHtml(),
-            ]
+                'body' => $this->body_to_html,
+                'slug' => $this->slug
+            ],
+            'user' => UserResource::make($this->user),
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\TagStoreRequest;
+use App\Http\Resources\TagResource;
 use App\Models\Tag;
 use App\Rules\TagNotReferenced;
 use Illuminate\Database\Eloquent\Collection;
@@ -18,11 +19,11 @@ class TagController extends Controller
      * Creates a tag for authorised users
      *
      * @param TagStoreRequest $request
-     * @return Tag
+     * @return TagResource
      * @throws ValidationException
      * @throws Throwable
      */
-    public function store(TagStoreRequest $request): Tag
+    public function store(TagStoreRequest $request): TagResource
     {
         // creates new tag object
         $newTag = new Tag();
@@ -45,19 +46,19 @@ class TagController extends Controller
 
 
         // returns the tag that was created
-        return $newTag;
+        return TagResource::make($newTag);
     }
 
     /**
      * Displays all the tags created from all users
      *
      * @param Request $request
-     * @return Tag|Collection
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(Request $request)
     {
         // displays all the tags that have been created so far
-        return Tag::all();
+        return TagResource::collection(Tag::all());
     }
 
     /**
@@ -65,12 +66,12 @@ class TagController extends Controller
      *
      * @param Request $request
      * @param Tag $tag
-     * @return Tag
+     * @return TagResource
      */
-    public function show(Request $request, Tag $tag): Tag
+    public function show(Request $request, Tag $tag): TagResource
     {
         // finds and returns the post with the matching id
-        return $tag;
+        return TagResource::make($tag);
     }
 
     /**
