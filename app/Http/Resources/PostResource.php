@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Mail\Markdown;
 
-class PostMarkdownToHtml extends JsonResource
+class PostResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
