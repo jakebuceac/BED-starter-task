@@ -46,24 +46,6 @@ class PostTest extends TestCase
     }
 
     /** @test */
-    public function all_users_cannot_create_a_post_with_an_existing_title()
-    {
-        $post = Post::factory()->create();
-        $user = User::factory()->create();
-
-        Sanctum::actingAs(
-            $user, ['*']
-        );
-
-        $response = $this->postJson('/api/post', [
-            'title' => $post->title,
-            'body' => 'My first laravel project'
-        ]);
-
-        $response->assertStatus(405);
-    }
-
-    /** @test */
     public function all_users_can_see_all_the_posts_created()
     {
         Post::factory()->count(5)->create();
@@ -108,7 +90,7 @@ class PostTest extends TestCase
             'body' => 'Just updated post!'
         ]);
 
-        $response->assertStatus(202);
+        $response->assertStatus(200);
 
         $post->refresh();
 

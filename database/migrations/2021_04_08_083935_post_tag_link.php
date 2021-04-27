@@ -18,6 +18,7 @@ class PostTagLink extends Migration
             $table->foreign('post_id')->references('id')->on('posts')->cascadeOnDelete();
             $table->unsignedBigInteger('tag_id');
             $table->foreign('tag_id')->references('id')->on('tags')->cascadeOnDelete();
+            $table->timestamps();
         });
     }
 

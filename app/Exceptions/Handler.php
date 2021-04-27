@@ -72,13 +72,9 @@ class Handler extends ExceptionHandler
 
             return new JsonResponse($e->errors(), 405);
 
-        } else if ($e instanceof QueryException) {
-
-            return new JsonResponse(['title' => $e->errorInfo], 405);
-
         } else if ($e instanceof ModelNotFoundException) {
 
-            return new JsonResponse(['id' => ['The entity could not be found.']], 404);
+            return new JsonResponse(['error' => ['The entity could not be found.']], 404);
         }
 
         return new JsonResponse([

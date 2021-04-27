@@ -4,16 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AttachTagToPostRequest;
 use App\Http\Requests\PostStoreRequest;
+use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
+use App\Http\Resources\TagResource;
 use App\Models\Post;
 use App\Models\Tag;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Cache;
 use Throwable;
+use function App\makeSlug;
 
 class PostController extends Controller
 {
@@ -22,34 +24,16 @@ class PostController extends Controller
      *
      * @param PostStoreRequest $request
      * @return PostResource
-     * @throws ValidationException
      * @throws Throwable
      */
-    public function store(PostStoreRequest $request): PostResource
+    public function store(PostStoreRequest $request): JsonResource
     {
-        // creates new post object
-        $newPost = new Post();
-        $newPost->title = $request->title;
-        $newPost->body = $request->body;
-        $newPost->slug = Str::slug($newPost->title);
+        $newPost = $request->user()->posts()->create([
+            'title' => $request->title,
+            'body' => $request->body,
+            'slug' => makeSlug($request->title),
+        ]);
 
-        // gets post by the slug that was created
-        $duplicatePost = Post::where('slug', $newPost->slug)->first();
-
-        // if the slug already exists then it will throw an exception
-        if ($duplicatePost)
-        {
-            throw ValidationException::withMessages([
-                'slug' => ['The slug has already been taken.']
-            ]);
-        }
-
-        // creates the rest of the post object fields and stores them to the database
-        $newPost->user_id = $request->user()->id;
-        $newPost->saveOrFail();
-
-
-        // returns the post that was created
         return PostResource::make($newPost);
     }
 
@@ -57,12 +41,21 @@ class PostController extends Controller
      * Displays all the posts created from all users
      *
      * @param Request $request
-     * @return AnonymousResourceCollection
+     * @return JsonResource
      */
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request)
     {
-        // displays all the posts that have been created so far
-        return PostResource::collection(Post::all());
+        // stores index into the cache
+        return Cache::remember('posts_' . $request->offset, 10, function () use ($request) {
+            $query = Post::query();
+
+            // if title is specified as a param show posts with title otherwise show all posts
+            if (!empty($request->title)) {
+                return PostResource::collection($query->byName($request->title)->orderBy('id', 'desc')->offset($request->offset)->limit(5)->get());
+            } else {
+                return PostResource::collection($query->orderBy('id', 'desc')->offset($request->offset)->limit(5)->get());
+            }
+        });
     }
 
     /**
@@ -72,31 +65,27 @@ class PostController extends Controller
      * @param Post $post
      * @return PostResource
      */
-    public function show(Request $request, Post $post): PostResource
+    public function show(Request $request, Post $post): JsonResource
     {
-        // finds and returns the post with the matching id
         return PostResource::make($post);
     }
 
     /**
      * Updates a post for the authorised owner
      *
-     * @param PostStoreRequest $request
+     * @param UpdatePostRequest $request
      * @param Post $post
-     * @return JsonResponse
-     * @throws AuthorizationException
+     * @return PostResource
+     * @throws Throwable
      */
-    public function update(PostStoreRequest $request, Post $post): JsonResponse
+    public function update(UpdatePostRequest $request, Post $post): JsonResource
     {
-        // checks if the user is the owner of the post
-        $this->authorize('update', $post);
+        $post->title = $request->title;
+        $post->body = $request->body;
+        $post->slug = makeSlug($request->title);
+        $post->saveOrFail();
 
-        // finds and updates the post with the matching id
-        $post->update($request->all());
-
-        // returns 202 if the request was successful
-        return new JsonResponse([], 202);
-
+        return PostResource::make($post);
     }
 
     /**
@@ -114,10 +103,8 @@ class PostController extends Controller
 
         $post->tags()->detach();
 
-        // finds and deletes the post with the matching id
         $post->delete();
 
-        // returns 202 if the request was successful
         return new JsonResponse([], 202);
     }
 
@@ -130,10 +117,8 @@ class PostController extends Controller
      */
     public function attach(AttachTagToPostRequest $request, Post $post)
     {
-        // gets the tag id from the request
         $tag = Tag::find($request->tag_id);
 
-        // attaches the tag to the post
         return $post->tags()->attach($tag);
     }
 }

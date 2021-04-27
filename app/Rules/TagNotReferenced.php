@@ -12,9 +12,12 @@ class TagNotReferenced implements Rule
      *
      * @return void
      */
-    public function __construct()
+
+    public Tag $tag;
+
+    public function __construct(Tag $tag)
     {
-        //
+        $this->tag = $tag;
     }
 
     /**
@@ -27,7 +30,7 @@ class TagNotReferenced implements Rule
     public function passes($attribute, $value)
     {
         $referenced = Tag::whereHas('posts', function($query) use ($value) {
-            $query->where('tag_id', '=', $value);
+            $query->where('tag_id', '=', $this->tag->id);
         })->first() !== null;
 
         return $referenced === false;

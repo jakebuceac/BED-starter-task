@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,9 +22,12 @@ class PostResource extends JsonResource
             'attributes' => [
                 'title' => $this->title,
                 'body' => $this->body_to_html,
-                'slug' => $this->slug
+                'slug' => $this->slug,
+                'created_at' => $this->created_at,
+                'updated_at' => $this->updated_at,
             ],
             'user' => UserResource::make($this->user),
+            'tags' => TagResource::collection($this->tags),
         ];
     }
 }

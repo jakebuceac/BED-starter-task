@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\TagStoreRequest;
+use App\Http\Requests\TagNotReferencedRequest;
+use App\Http\Resources\PostResource;
 use App\Http\Resources\TagResource;
+use App\Models\Post;
 use App\Models\Tag;
 use App\Rules\TagNotReferenced;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -19,32 +24,15 @@ class TagController extends Controller
      *
      * @param TagStoreRequest $request
      * @return TagResource
-     * @throws ValidationException
      * @throws Throwable
      */
     public function store(TagStoreRequest $request): TagResource
     {
-        // creates new tag object
         $newTag = new Tag();
         $newTag->name = $request->name;
 
-
-        // gets tag by the name that was created
-        $duplicateTag = Tag::where('name', $newTag->name)->first();
-
-        // if the name already exists then it will throw an exception
-        if ($duplicateTag)
-        {
-            throw ValidationException::withMessages([
-                'name' => ['The name has already been taken.']
-            ]);
-        }
-
-        // stores tag to the database
         $newTag->saveOrFail();
 
-
-        // returns the tag that was created
         return TagResource::make($newTag);
     }
 
@@ -52,12 +40,21 @@ class TagController extends Controller
      * Displays all the tags created from all users
      *
      * @param Request $request
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return JsonResource
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResource
     {
-        // displays all the tags that have been created so far
-        return TagResource::collection(Tag::all());
+        // stores index into the cache
+        return Cache::remember('tags_' . $request->name, 10, function () use ($request) {
+            $query = Tag::query();
+
+            // if name is specified as a param show tags with name otherwise show all posts
+            if (!empty($request->name)) {
+                return TagResource::collection($query->byName($request->name)->orderBy('id', 'desc')->offset($request->name)->limit(5)->get());
+            } else {
+                return TagResource::collection($query->orderBy('id', 'desc')->offset($request->name)->limit(5)->get());
+            }
+        });
     }
 
     /**
@@ -69,37 +66,24 @@ class TagController extends Controller
      */
     public function show(Request $request, Tag $tag): TagResource
     {
-        // finds and returns the post with the matching id
         return TagResource::make($tag);
     }
 
     /**
      * Updates a tag for the authorised user
      *
-     * @param TagStoreRequest $request
+     * @param TagNotReferencedRequest $request
      * @param Tag $tag
-     * @return JsonResponse
-     * @throws ValidationException
+     * @return TagResource
+     * @throws Throwable
      */
-    public function update(TagStoreRequest $request, Tag $tag): JsonResponse
+    public function update(TagNotReferencedRequest $request, Tag $tag): JSONResource
     {
-        // creates a custom validator
-        $validator = Validator::make([
-            'tag_id' => $tag->id,
-        ], [
-            // checks if tag is being used by a post
-            'tag_id' => [
-                new TagNotReferenced()
-            ],
-        ]);
+        $tag->name = $request->name;
 
-        $validator->validate();
+        $tag->saveOrFail();
 
-        // finds and updates the post with the matching id
-        $tag->update($request->all());
-
-        // returns 202 if the request was successful
-        return new JsonResponse([], 202);
+        return TagResource::make($tag);
     }
 
     /**
@@ -118,16 +102,14 @@ class TagController extends Controller
         ], [
             // checks if tag is being used by a post
             'tag_id' => [
-                new TagNotReferenced()
+                new TagNotReferenced($tag)
             ],
         ]);
 
         $validator->validate();
 
-        // deletes tag if it is not being used by a post
         $tag->delete();
 
-        // returns 202 if the request was successful
         return new JsonResponse([], 202);
     }
 }

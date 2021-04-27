@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Http\Requests\PostStoreRequest;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -29,17 +30,6 @@ class PostPolicy
      * @return mixed
      */
     public function view(User $user, Post $post)
-    {
-        //
-    }
-
-    /**
-     * Determine whether the user can create models.
-     *
-     * @param User $user
-     * @return mixed
-     */
-    public function create(User $user)
     {
         //
     }

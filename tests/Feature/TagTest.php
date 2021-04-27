@@ -107,7 +107,7 @@ class TagTest extends TestCase
             'name' => 'Laravel',
         ]);
 
-        $response->assertStatus(202);
+        $response->assertStatus(200);
 
         $tag->refresh();
 

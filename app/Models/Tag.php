@@ -27,5 +27,13 @@ class Tag extends Model
         return $this->belongsToMany(Post::class, 'posts_tags_link');
     }
 
+    /**
+     * Gets tags by name
+     */
+    public function scopeByName($query, $value)
+    {
+        return $query->where('name', 'LIKE', '%' . $value . '%');
+    }
+
 
 }

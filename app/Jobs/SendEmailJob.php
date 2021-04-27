@@ -2,10 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Mail\LoggedInNotification;
-use App\Models\User;
+use App\Mail\LogInNotification;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -24,7 +22,7 @@ class SendEmailJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(User $user, $ip)
+    public function __construct($user, $ip)
     {
         $this->user = $user;
         $this->ip = $ip;
@@ -38,6 +36,7 @@ class SendEmailJob implements ShouldQueue
     public function handle()
     {
         Mail::to($this->user)
-            ->send(new LoggedInNotification($this->user, $this->ip));
+            ->send(new LogInNotification($this->user, $this->ip));
     }
 }
+
